@@ -233,11 +233,19 @@ def plot_backtest_results(
         print("  [WARNING] No equity data, skip charts")
         return
 
+    # 去重连续的相同净值点，避免matplotlib生成巨大mesh
+    cleaned_equity = [equity_curve[0]]
+    for v in equity_curve[1:]:
+        if abs(v - cleaned_equity[-1]) > 1e-8:
+            cleaned_equity.append(v)
+    if len(cleaned_equity) < 2:
+        cleaned_equity = equity_curve
+
     # 计算回撤
-    equity = np.array(equity_curve)
-    peak = np.maximum.accumulate(equity)
-    # 避免除以0
-    drawdown = np.where(peak > 0, (equity - peak) / peak * 100, np.zeros_like(equity))
+    equity = np.array(cleaned_equity)
+    nav = equity + 10000000.0
+    peak = np.maximum.accumulate(nav)
+    drawdown = np.where(peak > 0, (nav - peak) / peak * 100, np.zeros_like(nav))
 
     # 按日分组计算盈亏
     daily_pnl = []

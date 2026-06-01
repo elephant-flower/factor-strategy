@@ -33,7 +33,7 @@ DB_CONFIG = {
 }
 
 # 数据范围
-START_DATE = "20240101"
+START_DATE = "20210101"
 END_DATE = "20260519"
 
 # 输出目录
