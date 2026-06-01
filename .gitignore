@@ -19,8 +19,8 @@ env/
 .DS_Store
 Thumbs.db
 
-# Large data (exclude from repo if needed)
-# data/*.csv
+# Large data - use export_data.py to regenerate
+data/*.csv
 
 # Output (generated at runtime)
 output/
