@@ -242,10 +242,19 @@ def plot_backtest_results(
         cleaned_equity = equity_curve
 
     # 计算回撤
-    equity = np.array(cleaned_equity)
-    nav = equity + 10000000.0
+    equity = np.array(cleaned_equity, dtype=np.float64)
+    if equity[0] == 0:
+        # 累计PnL模式: 净值 = 初始资金 + PnL
+        nav = equity + 10000000.0
+    else:
+        # 净值模式: equity已经是净值
+        nav = equity
     peak = np.maximum.accumulate(nav)
-    drawdown = np.where(peak > 0, (nav - peak) / peak * 100, np.zeros_like(nav))
+    drawdown = np.where(peak > 1, (nav - peak) / peak * 100, np.zeros_like(nav))
+    # 限制点数，避免绘图内存溢出
+    if len(drawdown) > 500:
+        step = max(1, len(drawdown) // 500)
+        drawdown = drawdown[::step]
 
     # 按日分组计算盈亏
     daily_pnl = []
@@ -338,28 +347,32 @@ def plot_backtest_results(
     print(f"  PnL Distribution chart -> {dist_path}")
 
     # 3. 回撤曲线
-    fig, ax = plt.subplots(figsize=(12, 5))
-    ax.fill_between(range(len(drawdown)), drawdown, alpha=0.3, color="#F44336")
-    ax.plot(range(len(drawdown)), drawdown, color="#D32F2F", linewidth=1.2)
-    ax.axhline(y=0, color="gray", linestyle="--", alpha=0.5)
-    ax.set_xlabel("Step", fontsize=11)
-    ax.set_ylabel("Drawdown (%)", fontsize=11)
-    ax.set_title(f"Drawdown Curve ({prefix})", fontsize=13, fontweight="bold")
-    ax.grid(True, alpha=0.3)
+    try:
+        fig, ax = plt.subplots(figsize=(8, 4))
+        dd_len = len(drawdown)
+        if dd_len > 0:
+            ax.plot(range(dd_len), drawdown, color="#D32F2F", linewidth=1.2)
+        ax.axhline(y=0, color="gray", linestyle="--", alpha=0.5)
+        ax.set_xlabel("Step", fontsize=11)
+        ax.set_ylabel("Drawdown (%)", fontsize=11)
+        ax.set_title(f"Drawdown Curve ({prefix})", fontsize=13, fontweight="bold")
+        ax.grid(True, alpha=0.3)
 
-    if len(drawdown) > 0:
-        min_idx = np.argmin(drawdown)
-        if np.isfinite(drawdown[min_idx]):
-            ax.annotate(f"Max DD: {drawdown[min_idx]:.1f}%",
-                        xy=(min_idx, drawdown[min_idx]),
-                        xytext=(min_idx + len(drawdown) * 0.05, drawdown[min_idx] + 5),
-                        arrowprops=dict(arrowstyle="->", color="red"),
-                        fontsize=10, color="red", fontweight="bold")
+        if len(drawdown) > 0:
+            min_idx = np.argmin(drawdown)
+            if np.isfinite(drawdown[min_idx]):
+                ax.annotate(f"Max DD: {drawdown[min_idx]:.1f}%",
+                            xy=(min_idx, drawdown[min_idx]),
+                            xytext=(min_idx + len(drawdown) * 0.05, drawdown[min_idx] + 5),
+                            arrowprops=dict(arrowstyle="->", color="red"),
+                            fontsize=10, color="red", fontweight="bold")
 
-    dd_path = os.path.join(output_dir, f"{prefix}_drawdown_curve.png")
-    plt.savefig(dd_path, dpi=150, bbox_inches="tight")
-    plt.close()
-    print(f"  Drawdown curve -> {dd_path}")
+        dd_path = os.path.join(output_dir, f"{prefix}_drawdown_curve.png")
+        plt.savefig(dd_path, dpi=100, bbox_inches="tight")
+        plt.close()
+        print(f"  Drawdown curve -> {dd_path}")
+    except (MemoryError, ValueError) as e:
+        print(f"  [WARN] Drawdown chart skipped: {e}")
 
     # 打印回测摘要
     print(f"\n{'='*50}")
