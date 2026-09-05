@@ -6,7 +6,7 @@
 1. **量涌波动率共振策略** (Volume Surge ATR Resonance) — T期货5分钟K线
 2. **随波逐流策略** (Sui Bo Liu) — 债券日线三因子驱动
 
-所有数据均导出为CSV文件，策略脚本可直接读取本地数据进行回测并输出图表结果。
+数据为CSV文件，策略脚本可直接读取本地数据进行回测并输出图表结果。
 
 ---
 
@@ -18,8 +18,8 @@ factor-stategy/
 ├── requirements.txt       # Python依赖
 ├── .gitignore
 │
-├── data/                  # CSV数据文件（从数据库导出）
-│   ├── t_futures_5min.csv      # T期货5分钟K线（18个合约, 29万行）
+├── data/                  # CSV数据文件
+│   ├── t_futures_5min.csv      # T期货5分钟K线（18个合约）
 │   ├── t_futures_day.csv       # T期货日K线
 │   ├── bond_day.csv            # 债券日线数据（8113个券）
 │   ├── macro_dr007.csv         # DR007利率
@@ -114,16 +114,16 @@ python scripts/run_all.py
 
 ## 数据说明
 
-`data/` 目录下的CSV文件是从内网数据库 `quotation_test6` 导出的回测数据，覆盖范围 `20240101 ~ 20260519`。
+`data/` 目录下的CSV文件是回测数据，覆盖范围 `20240101 ~ 20260519`。
 
-如需重新导出数据（需要有内网数据库访问权限）：
+如需重新导出数据：
 ```bash
 python scripts/export_data.py
 ```
 
 ---
 
-所有数据均从内网数据库导出为CSV文件，策略脚本可直接读取本地数据进行回测并输出图表结果。
+所有数据均为CSV文件，策略脚本可直接读取本地数据进行回测并输出图表结果。
 
 ---
 
